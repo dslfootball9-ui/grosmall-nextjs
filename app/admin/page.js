@@ -1,22 +1,30 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { sb, upload } from '../../lib/supabase'
-import { useMe, dh } from '../../lib/hooks'
+import { useMe, dh, STATUS } from '../../lib/hooks'
 export default function Admin() {
-  const { user, profile, loading } = useMe(), [tab, setTab] = useState('users'), [users, setUsers] = useState([]), [cats, setCats] = useState([]), [prods, setProds] = useState([])
+  const { user, profile, loading } = useMe(), [tab, setTab] = useState('sellers'), [users, setUsers] = useState([]), [cats, setCats] = useState([]), [prods, setProds] = useState([]), [orders, setOrders] = useState([]), rt = useRouter()
   const [name, setName] = useState(''), [file, setFile] = useState(null), [msg, setMsg] = useState('')
   const load = () => {
     sb.from('profiles').select('*').order('created_at', { ascending: false }).then(r => setUsers(r.data || []))
     sb.from('categories').select('*').order('name').then(r => setCats(r.data || []))
     sb.from('products').select('*').order('created_at', { ascending: false }).then(r => setProds(r.data || []))
+    sb.from('orders').select('*, order_items(quantity,price,products(name))').order('created_at', { ascending: false }).then(r => setOrders(r.data || []))
   }
   useEffect(() => { if (profile?.role === 'admin') load() }, [profile])
+  useEffect(() => { if (!loading && !user) rt.replace('/login') }, [loading, user])
   if (loading) return <p>Chargement...</p>
   if (profile?.role !== 'admin') return <p className="card">Accès réservé à l'administrateur.</p>
   async function addCat(e) { e.preventDefault(); try { const image = file ? await upload(file) : null; const { error } = await sb.from('categories').insert({ name, image }); if (error) throw error; setName(''); setFile(null); setMsg(''); load() } catch (x) { setMsg(x.message) } }
   const act = async (q) => { const { error } = await q; if (error) alert(error.message); load() }
   return (<div className="space-y-4"><h1 className="text-2xl font-bold">Administration</h1>
-    <div className="flex gap-2">{[['users', 'Utilisateurs'], ['cats', 'Catégories'], ['prods', 'Produits']].map(([k, l]) => <button key={k} onClick={() => setTab(k)} className={tab === k ? 'btn' : 'btn2'}>{l}</button>)}</div>
+    <div className="flex gap-2">{[['sellers', 'Vendeurs'], ['orders', 'Commandes'], ['users', 'Utilisateurs'], ['cats', 'Catégories'], ['prods', 'Produits']].map(([k, l]) => <button key={k} onClick={() => setTab(k)} className={tab === k ? 'btn' : 'btn2'}>{l}</button>)}</div>
+    {tab === 'sellers' && (users.filter(u => u.role === 'seller').length ? users.filter(u => u.role === 'seller').map(u => (<div key={u.id} className="card flex justify-between items-center gap-2 flex-wrap"><div className="min-w-0"><b>{u.full_name || u.email}</b><p className="text-sm text-gray-600">{u.email} • {u.phone} • {u.city}</p>
+      <span className="bg-green-100 rounded-full px-3 text-sm font-bold">{{ approved: 'Validé', pending: 'En attente', rejected: 'Refusé' }[u.seller_status] || u.seller_status}</span></div>
+      <div className="flex gap-2"><button className="btn !py-2" onClick={() => act(sb.from('profiles').update({ seller_status: 'approved' }).eq('id', u.id))}>Valider</button><button className="btn2" onClick={() => act(sb.from('profiles').update({ seller_status: 'rejected' }).eq('id', u.id))}>Refuser</button></div></div>)) : <p>Aucun vendeur.</p>)}
+    {tab === 'orders' && (orders.length ? orders.map(o => (<div key={o.id} className="card space-y-1"><div className="flex justify-between gap-2"><b>{dh(o.total)}</b><select className="input !w-auto !p-1" value={o.status} onChange={e => act(sb.from('orders').update({ status: e.target.value }).eq('id', o.id))}>{Object.keys(STATUS).map(s => <option key={s} value={s}>{STATUS[s]}</option>)}</select></div>
+      <p className="text-sm">{(o.order_items || []).map(i => `${i.products?.name || 'Produit'} ×${i.quantity}`).join(', ')}</p><p className="text-sm">📍 {o.delivery_address} • 📞 {o.phone} • {new Date(o.created_at).toLocaleDateString('fr-FR')}</p></div>)) : <p>Aucune commande.</p>)}
     {tab === 'users' && users.map(u => (<div key={u.id} className="card flex justify-between items-center gap-2 flex-wrap"><div className="min-w-0"><b>{u.full_name || u.email}</b><p className="text-sm text-gray-600">{u.email} • {u.phone} • {u.city}</p></div>
       <select className="input !w-auto" value={u.role} disabled={u.id === user.id} onChange={e => act(sb.from('profiles').update({ role: e.target.value }).eq('id', u.id))}><option value="buyer">buyer</option><option value="seller">seller</option><option value="admin">admin</option></select></div>))}
     {tab === 'cats' && <><form onSubmit={addCat} className="card flex gap-2 flex-wrap"><input className="input !w-auto flex-1" required placeholder="Nom de la catégorie" value={name} onChange={e => setName(e.target.value)} /><input type="file" accept="image/*" onChange={e => setFile(e.target.files[0])} /><button className="btn">Ajouter</button>{msg && <p className="text-red-600 w-full">{msg}</p>}</form>

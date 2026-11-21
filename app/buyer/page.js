@@ -2,10 +2,12 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { sb } from '../../lib/supabase'
-import { useMe, STATUS, dh } from '../../lib/hooks'
+import { useRouter } from 'next/navigation'
+import { useMe, STATUS, dh, roleHome } from '../../lib/hooks'
 export default function Buyer() {
-  const { user, loading } = useMe(), [o, setO] = useState(null)
+  const { user, profile, loading } = useMe(), [o, setO] = useState(null), rt = useRouter()
   useEffect(() => { if (user) sb.from('orders').select('*, order_items(quantity,price,products(name))').eq('buyer_id', user.id).order('created_at', { ascending: false }).then(r => setO(r.data || [])) }, [user])
+  useEffect(() => { if (loading) return; if (!user) rt.replace('/login'); else if (profile && profile.role !== 'buyer') rt.replace(roleHome(profile.role)) }, [loading, user, profile])
   if (loading) return <p>Chargement...</p>
   if (!user) return <Link href="/login" className="btn">Connexion</Link>
   return (<div className="space-y-3"><h1 className="text-2xl font-bold">Mes commandes</h1>

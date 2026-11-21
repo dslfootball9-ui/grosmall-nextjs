@@ -2,6 +2,14 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { sb } from '../../lib/supabase'
+import { roleHome } from '../../lib/hooks'
+// Read the role from profiles; if the profile is missing create it (buyer/seller only, never admin)
+async function roleOf(u) {
+  let { data: p } = await sb.from('profiles').select('role').eq('id', u.id).maybeSingle()
+  if (!p) { const m = u.user_metadata || {}, role = m.role === 'seller' ? 'seller' : 'buyer'
+    await sb.from('profiles').insert({ id: u.id, email: u.email, full_name: m.full_name, phone: m.phone, city: m.city, role, seller_status: 'pending' }); p = { role } }
+  return p.role
+}
 export default function Login() {
   const r = useRouter(), [mode, setMode] = useState('login'), [f, setF] = useState({ email: '', password: '', full_name: '', phone: '', city: '', role: 'buyer' })
   const [msg, setMsg] = useState(''), [busy, setBusy] = useState(false), set = k => e => setF({ ...f, [k]: e.target.value })
@@ -12,8 +20,7 @@ export default function Login() {
     setBusy(false)
     if (res.error) return setMsg(res.error.message)
     if (mode === 'signup' && !res.data.session) return setMsg('Compte créé ! Vérifiez votre email pour confirmer, puis connectez-vous.')
-    const p = (await sb.from('profiles').select('role').eq('id', res.data.user.id).single()).data
-    r.push({ admin: '/admin', seller: '/seller' }[p?.role] || '/buyer')
+    r.push(roleHome(await roleOf(res.data.user)))
   }
   return (<form onSubmit={submit} className="card max-w-md mx-auto space-y-3"><h1 className="text-2xl font-bold">{mode === 'login' ? 'Connexion' : 'Créer un compte'}</h1>
     {mode === 'signup' && <><input className="input" required placeholder="Nom complet" value={f.full_name} onChange={set('full_name')} />

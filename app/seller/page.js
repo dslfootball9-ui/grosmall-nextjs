@@ -1,11 +1,12 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { sb, upload } from '../../lib/supabase'
 import { useMe, STATUS, dh } from '../../lib/hooks'
 const EMPTY = { name: '', description: '', category_id: '', price: '', wholesale_price: '', stock: '', unit: 'kg', image_url: '' }
 export default function Seller() {
-  const { user, profile, loading } = useMe()
+  const { user, profile, loading } = useMe(), rt = useRouter()
   const [cats, setCats] = useState([]), [mine, setMine] = useState([]), [orders, setOrders] = useState([]), [f, setF] = useState(EMPTY), [file, setFile] = useState(null), [msg, setMsg] = useState(''), [busy, setBusy] = useState(false)
   const set = k => e => setF({ ...f, [k]: e.target.value })
   async function load() {
@@ -14,8 +15,12 @@ export default function Seller() {
     sb.from('orders').select('*, order_items(quantity,price,products(name))').eq('seller_id', user.id).order('created_at', { ascending: false }).then(r => setOrders(r.data || []))
   }
   useEffect(() => { if (user) load() }, [user])
+  useEffect(() => { if (!loading && !user) rt.replace('/login') }, [loading, user])
   if (loading) return <p>Chargement...</p>
   if (!user || !['seller', 'admin'].includes(profile?.role)) return <div className="card"><p>Espace réservé aux vendeurs.</p><Link href="/login" className="btn mt-3">Connexion</Link></div>
+  const ok = profile.role === 'admin' || !profile.seller_status || profile.seller_status === 'approved'
+  if (!ok) return <div className="card space-y-2"><h1 className="text-xl font-bold">Compte vendeur {profile.seller_status === 'rejected' ? 'refusé' : 'en attente de validation'}</h1><p>{profile.seller_status === 'rejected' ? "Votre demande a été refusée par l'administrateur. Contactez contact@grosmall.ma." : "L'administrateur doit valider votre compte avant que vous puissiez publier des produits."}</p></div>
+  const done = orders.filter(o => o.status === 'delivered'), ca = done.reduce((s, o) => s + Number(o.total), 0)
   async function save(e) {
     e.preventDefault(); setBusy(true); setMsg('')
     try {
@@ -30,6 +35,7 @@ export default function Seller() {
   const del = async id => { if (confirm('Supprimer ce produit ?')) { await sb.from('products').delete().eq('id', id); load() } }
   const status = async (id, s) => { await sb.from('orders').update({ status: s }).eq('id', id); load() }
   return (<div className="space-y-6"><h1 className="text-2xl font-bold">Espace vendeur</h1>
+    <div className="grid grid-cols-3 gap-2 text-center">{[[dh(ca), "Chiffre d'affaires (livré)"], [orders.length, 'Commandes'], [mine.length, 'Produits']].map(([v, l]) => <div key={l} className="bg-black text-[#FFD500] rounded-2xl p-3"><b className="text-xl block">{v}</b><span className="text-xs text-white">{l}</span></div>)}</div>
     <form onSubmit={save} className="card grid md:grid-cols-2 gap-2"><h2 className="md:col-span-2 font-bold">{f.id ? 'Modifier le produit' : 'Ajouter un produit'}</h2>
       <input className="input" required placeholder="Nom du produit" value={f.name} onChange={set('name')} />
       <select className="input" value={f.category_id || ''} onChange={set('category_id')}><option value="">Catégorie</option>{cats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
