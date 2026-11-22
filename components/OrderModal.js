@@ -11,7 +11,7 @@ export default function OrderModal({ p, onClose }) {
   function send(e) {
     e.preventDefault()
     const text = `Bonjour, je veux commander:\n- Produit: ${p.name}\n- Prix: ${p.price} MAD\n- Quantité: ${qty}\n- Total: ${total} MAD\n- Nom: ${f.name.trim()}\n- Téléphone: ${f.phone.trim()}\n- Ville: ${f.city.trim()}\n- Adresse: ${f.address.trim()}`
-    window.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`, "_blank");
   }
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-end md:items-center justify-center p-0 md:p-4" onClick={onClose}>
