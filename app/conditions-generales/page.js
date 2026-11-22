@@ -9,5 +9,5 @@ export default function Terms() {
     <h2>5. Livraison</h2><p>La livraison est organisée avec le vendeur. Vérifiez la commande à la réception.</p>
     <h2>6. Responsabilité</h2><p>Gros Mall n'est pas responsable des litiges entre acheteurs et vendeurs, mais peut suspendre un compte en cas d'abus.</p>
     <h2>7. Données personnelles</h2><p>Voir notre <a className="underline font-bold" href="/privacy-policy">politique de confidentialité</a>.</p>
-    <h2>8. Contact</h2><p><a <a className="underline font-bold" href="/contact">xlaaz.business@gmail.com</a></p></article>)
+    <h2>8. Contact</h2><p><a className="underline font-bold" href="/contact">xlaaz.business@gmail.com</a></p></article>)
 }
