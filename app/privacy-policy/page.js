@@ -10,5 +10,5 @@ export default function Privacy() {
     <h2>5. Conservation et suppression</h2><p>Vos données sont conservées tant que votre compte existe. Vous pouvez supprimer votre compte et vos données à tout moment depuis la page <a className="underline font-bold" href="/supprimer-compte">Supprimer mon compte</a>.</p>
     <h2>6. Vos droits</h2><p>Vous pouvez accéder à vos données, les corriger ou les supprimer (loi marocaine 09-08). Écrivez-nous pour toute demande.</p>
     <h2>7. Enfants</h2><p>Gros Mall n'est pas destiné aux moins de 18 ans.</p>
-    <h2>8. Contact</h2><p><a className="underline font-bold" href="mailto:contact@grosmall.ma">contact@grosmall.ma</a></p></article>)
+    <h2>8. Contact</h2><p><a className="underline font-bold" href="mailto:xlaaz.business@gmail.com">xlaaz.business@gmail.com</a></p></article>)
 }
