@@ -15,5 +15,5 @@ export default function Delete() {
     <p>Cette action supprime définitivement votre compte, votre profil, vos produits et vos commandes. Elle est irréversible.</p>
     {loading ? <p>Chargement...</p> : user ? <><button className="btn w-full" disabled={busy} onClick={del}>{busy ? '...' : 'Supprimer définitivement mon compte'}</button>{msg && <p className="font-bold">{msg}</p>}</>
       : <><p>Connectez-vous pour supprimer votre compte vous-même.</p><Link href="/login" className="btn w-full">Connexion</Link></>}
-    <p className="text-sm text-gray-600">Vous ne pouvez pas vous connecter ? Écrivez à <a className="underline font-bold" href="mailto:contact@grosmall.ma">contact@grosmall.ma</a>.</p></div>)
+    <p className="text-sm text-gray-600">Vous ne pouvez pas vous connecter ? Écrivez à <a className="underline font-bold" href="mailto:xlaaz.business@gmail.com">contact@grosmall.ma</a>.</p></div>)
 }

@@ -19,7 +19,7 @@ export default function Seller() {
   if (loading) return <p>Chargement...</p>
   if (!user || !['seller', 'admin'].includes(profile?.role)) return <div className="card"><p>Espace réservé aux vendeurs.</p><Link href="/login" className="btn mt-3">Connexion</Link></div>
   const ok = profile.role === 'admin' || !profile.seller_status || profile.seller_status === 'approved'
-  if (!ok) return <div className="card space-y-2"><h1 className="text-xl font-bold">Compte vendeur {profile.seller_status === 'rejected' ? 'refusé' : 'en attente de validation'}</h1><p>{profile.seller_status === 'rejected' ? "Votre demande a été refusée par l'administrateur. Contactez contact@grosmall.ma." : "L'administrateur doit valider votre compte avant que vous puissiez publier des produits."}</p></div>
+  if (!ok) return <div className="card space-y-2"><h1 className="text-xl font-bold">Compte vendeur {profile.seller_status === 'rejected' ? 'refusé' : 'en attente de validation'}</h1><p>{profile.seller_status === 'rejected' ? "Votre demande a été refusée par l'administrateur. Contactez xlaaz.business@gmail.com" : "L'administrateur doit valider votre compte avant que vous puissiez publier des produits."}</p></div>
   const done = orders.filter(o => o.status === 'delivered'), ca = done.reduce((s, o) => s + Number(o.total), 0)
   async function save(e) {
     e.preventDefault(); setBusy(true); setMsg('')
